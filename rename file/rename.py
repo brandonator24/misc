@@ -7,12 +7,18 @@ dirname = input("Enter file directory: ")
 bad_text = ""
 bad_text_list = []
 new_name_list = []
-print("(Type 'done' when finished)\nEnter phrase/text to be removed...")
+default = ["gaming", "sfx", "hd", "sound effect", "sound", "effect", "original", "clip", "high quality"]
+print("(Type 'done' when finished, and 'default' to use default word list)\nEnter phrase/text to be removed...")
 while(True):
     bad_text = input("text: ")
-    if(bad_text != "done"):
+    need_append = True
+    if(bad_text == "default"):
+        need_append = False
+        for word in default:
+            bad_text_list.append(word)
+    if(bad_text != "done" and need_append == True):
         bad_text_list.append(bad_text)
-    else:
+    if(bad_text == "done"):
         print("Beginning file scrub...")
         break
 
@@ -37,15 +43,16 @@ for file in os.listdir():
     if(len(special_chars) > 0):
         no_special_chars = re.sub(special_chars_pattern, "", file_name)
         file_name = no_special_chars
+        print(f"Removed special characters: {file_name}")
 
     # Remove straggler chars
-    # targets singular characters surrounded by whitespace, or at the end of name
-    straggler_pattern = "((\s).(?=\s))+|(\s).$"
+    # targets singular characters surrounded by whitespace, or at the end of name if not number
+    straggler_pattern = "((\s).(?=\s))+|(\s)(?!\d).$"
     stragglers = re.findall(straggler_pattern, file_name)
-    print(f"Stragglers {stragglers}")
     if(len(stragglers) > 0):
         removed_stragglers = re.sub(straggler_pattern, "", file_name)
         file_name = removed_stragglers
+        print(f"Removed stragglers {file_name}")
 
     # Remove extra spaces
     # finds any number of spaces more than 1
@@ -53,11 +60,11 @@ for file in os.listdir():
     if(len(ex_spaces) > 0):
         fix_spaces = re.sub("[ ]{2,}", " ", file_name, flags=re.IGNORECASE)
         file_name = fix_spaces
-
+        print(f"Removed extra spaces: {file_name}")
     if(file_name[-1] == " "):
         stripped_name = file_name[:-1]
         file_name = stripped_name
-    print(f"Less space name: {file_name}")
+        print(f"Removed ending spaces: {file_name}")
 
     # Fix Caps lock titles
     # first letter remains upper, rest are lowered if more than 3 capitals found in word
@@ -76,7 +83,7 @@ for file in os.listdir():
                     print(new_word)
             new_words.append(new_word)      
             file_name = ' '.join(new_words)
-    print(f"LOWERED LETTERS: {new_words}, {file_name}")
+    print(f"Lowered letters: {file_name}")
 
     # append all file names
     final_name = file_name + file_ext
