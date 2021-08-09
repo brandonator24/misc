@@ -7,7 +7,7 @@ dirname = input("Enter file directory: ")
 bad_text = ""
 bad_text_list = []
 new_name_list = []
-default = ["gaming", "sfx", "hd", "sound effect", "sound", "effect", "original", "clip", "high quality"]
+default = ["gaming", "sfx", "hd", "sound effect", "sound", "effect", "original", "clip", "high quality", "transparent", "image"]
 print("(Type 'done' when finished, and 'default' to use default word list)\nEnter phrase/text to be removed...")
 while(True):
     bad_text = input("text: ")
@@ -36,8 +36,16 @@ for file in os.listdir():
             print(f"removed bad text: {new_file_name}")
             file_name = new_file_name
     
+    # Replace underscores and dashes with spaces if surrounded by other chars, not whitespace
+    dash_score_pattern = "(\-|\_)(?=.)(?<=.)"
+    dash_scores = re.findall(dash_score_pattern, file_name)
+    if(len(dash_scores) > 0):
+        space_subbed_name = re.sub(dash_score_pattern, " ", file_name)
+        file_name = space_subbed_name
+        print(f"Spaces Substituted: {file_name}")
+
     # Remove special chars
-    # all special characters
+    # most special characters unnecessary in titles
     special_chars_pattern = "[\-\[\]\/\\\{\}\(\)\*\+\?\.\^\$\|\!%+&,;#=$\x22]+"
     special_chars = re.findall(special_chars_pattern, file_name)
     if(len(special_chars) > 0):
@@ -75,12 +83,9 @@ for file in os.listdir():
         if(len(re.findall("([A-Z]{4,})+", word)) > 0):
             print(word)
             new_word = word[0]
-            print(new_word)
             for i in range(1,len(word)):
                 if(word[i].isupper()):
-                    print(word[i])
                     new_word += word[i].lower()
-                    print(new_word)
             new_words.append(new_word)      
             file_name = ' '.join(new_words)
     print(f"Lowered letters: {file_name}")
@@ -97,7 +102,14 @@ confirm = input("CONFIRM FILE NAMES (y/n): ")
 if(confirm == "y" or confirm == "Y"):
     file_index = 0
     for file in os.listdir():
-        os.rename(file, new_name_list[file_index])
+        try:
+            os.rename(file, new_name_list[file_index])
+        except FileExistsError as e:
+            print("FILE EXISTS, RENAMING...")
+            num_files = sum(1 for file_name in os.listdir() if os.path.isfile(file_name))
+            next_num = num_files + 1
+            duplicate_name = new_name_list[file_index] + "(" + str(next_num) + ")"
+            os.rename(file, duplicate_name)
         file_index += 1
 else:
     sys.exit()
